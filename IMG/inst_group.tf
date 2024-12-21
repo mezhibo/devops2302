@@ -31,7 +31,7 @@ resource "yandex_compute_instance_group" "lamp-group" {
     user-data  = <<EOF
 #!/bin/bash
 cd /var/www/html
-echo '<html><head><title>Cat</title></head> <body><h1>Hello!</h1><img src="http://s3bucket2.website.yandexcloud.net/cat"/></body></html>' > index.html
+echo '<html><head><title>Tree</title></head> <body><h1>Hello!</h1><img src="http://mezhibo-netology-s3.website.yandexcloud.net/tree"/></body></html>' > index.html
 EOF
     }
 
