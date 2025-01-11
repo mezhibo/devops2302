@@ -1,0 +1,71 @@
+resource "yandex_compute_instance_group" "lamp-group" {
+  name                = "lamp-group-with-balancer"
+#   folder_id           = "b1g6k2i3lobiesnh55af"
+   service_account_id  = "ajevi1pcclc1fv7f568h"
+  #deletion_protection = "<защита_от_удаления:_true_или_false>"
+  
+  instance_template {
+    platform_id = "standard-v1"
+    resources {
+      memory = 2
+      cores  = 2
+    }
+
+    boot_disk {
+      mode = "READ_WRITE"
+      initialize_params {
+        image_id = "fd827b91d99psvq5fjit"  # LAMP
+      }
+    }
+
+    network_interface {
+      network_id = "${yandex_vpc_network.cloud-net.id}"
+      subnet_ids = ["${yandex_vpc_subnet.public.id}"]
+      nat       = true
+    }
+
+
+    metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+    serial-port-enable = "1"
+    user-data  = <<EOF
+#!/bin/bash
+cd /var/www/html
+echo '<html><head><title>Tree</title></head> <body><h1>Hello!</h1><img src="http://mezhibo-netology-s3.website.yandexcloud.net/tree"/></body></html>' > index.html
+EOF
+    }
+
+
+    scheduling_policy {
+      preemptible = true
+    }
+  }
+  scale_policy {
+    fixed_scale {
+      size = 3
+    }
+  }
+
+   allocation_policy {
+     zones = ["ru-central1-a"]
+   }
+
+  deploy_policy {
+    max_unavailable = 1
+    max_expansion   = 0
+  }
+
+  health_check {
+    interval = 30
+    timeout  = 10
+    tcp_options {
+      port = 80
+    }
+  }
+
+  load_balancer {
+    target_group_name        = "target-group-lamp"
+    target_group_description = "load balancer target group lamp"
+  }
+}
+
